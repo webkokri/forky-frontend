@@ -1,0 +1,22 @@
+# Same thing for Caddy. Files: copy dist/ to /var/www/forky.ca
+forky.ca, www.forky.ca {
+	root * /var/www/forky.ca
+	encode gzip
+
+	handle /api/* {
+		reverse_proxy https://api.forky.ca {
+			header_up Host api.forky.ca
+		}
+	}
+	@siteFiles path /robots.txt /sitemap.xml /llms.txt /llms-full.txt /manifest.webmanifest
+	handle @siteFiles {
+		rewrite * /api/v1/public/site{path}
+		reverse_proxy https://api.forky.ca {
+			header_up Host api.forky.ca
+		}
+	}
+	handle {
+		try_files {path} /index.html
+		file_server
+	}
+}

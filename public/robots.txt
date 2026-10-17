@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Disallow: /account
+Disallow: /cart
+Disallow: /login
+Disallow: /register
+Disallow: /forgot-password
+Disallow: /reset-password
+Disallow: /order/
+Disallow: /orders
+Disallow: /drive/onboarding
+Disallow: /business/onboarding
+
+Sitemap: https://api.forky.ca/api/v1/public/site/sitemap.xml
