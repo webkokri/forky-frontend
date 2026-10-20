@@ -4,8 +4,10 @@ import { api } from '../api'
 import { useAuth } from '../context/AuthContext'
 import { useCart } from '../context/CartContext'
 import { useLocation2 } from '../context/LocationContext'
+import { useMode } from '../context/ModeContext'
 import { useAsync, money } from '../utils/useAsync'
 import { AddButton, Thumb } from '../components/ui'
+import AddressSearch from '../components/AddressSearch'
 
 const TIPS = [0, 10, 15, 20]
 const LINES = [['subtotal', 'Item total'], ['deliveryFee', 'Delivery fee'], ['serviceFee', 'Service fee'], ['smallOrderFee', 'Small order fee'], ['taxAmount', 'Taxes'], ['tax', 'Taxes'], ['tip', 'Tip'], ['discountTotal', 'Discount', true], ['discount', 'Discount', true]]
@@ -25,7 +27,7 @@ function Addresses({ value, onChange }) {
   const add = async (e) => {
     e.preventDefault(); setErr('')
     try {
-      const a = await api.addAddress({ ...f, ...(loc?.lat != null ? { lat: loc.lat, lng: loc.lng } : {}), isDefault: !shown.length })
+      const a = await api.addAddress({ label: f.label, line1: f.line1, city: f.city, postalCode: f.postalCode, province: f.province, ...(f.lat != null ? { lat: f.lat, lng: f.lng } : loc?.lat != null ? { lat: loc.lat, lng: loc.lng } : {}), isDefault: !shown.length })
       setList([...shown, a]); onChange(a.id); setAdding(false)
     } catch (x) { setErr(x.message) }
   }
@@ -43,6 +45,8 @@ function Addresses({ value, onChange }) {
         ))}
       </div>
       {adding ? (
+        <>
+        <div className="mt-3"><AddressSearch near={loc} onPick={(p) => setF((x) => ({ ...x, line1: p.line1, city: p.city || x.city, province: p.province || x.province, postalCode: p.postalCode || x.postalCode, lat: p.lat, lng: p.lng }))} placeholder="Search your address" /></div>
         <form onSubmit={add} className="mt-3 grid gap-3 sm:grid-cols-2">
           <label className="text-xs font-semibold">Label<input value={f.label} onChange={(e) => setF({ ...f, label: e.target.value })} className={field} /></label>
           <label className="text-xs font-semibold">Street address<input required value={f.line1} onChange={(e) => setF({ ...f, line1: e.target.value })} className={field} /></label>
@@ -51,6 +55,7 @@ function Addresses({ value, onChange }) {
           {err && <p className="text-sm text-rose-600 sm:col-span-2">{err}</p>}
           <div className="flex gap-2 sm:col-span-2"><button className="btn-primary">Save address</button><button type="button" onClick={() => setAdding(false)} className="btn-ghost">Cancel</button></div>
         </form>
+        </>
       ) : <button onClick={() => setAdding(true)} className="mt-3 text-sm font-bold text-brand-600">+ Add new address</button>}
     </section>
   )
@@ -62,7 +67,8 @@ export default function Cart() {
   const nav = useNavigate()
   const { data: payCfg } = useAsync(() => api.getPaymentsConfig(), [])
   const { data: wallet } = useAsync(() => (user ? api.getWallet() : Promise.resolve(null)), [user?.id])
-  const [type, setType] = useState('DELIVERY')
+  const { mode } = useMode()
+  const [type, setType] = useState(mode === 'pickup' ? 'PICKUP' : 'DELIVERY')
   const [addressId, setAddressId] = useState(null)
   const [tipPct, setTipPct] = useState(0)
   const [promoInput, setPromoInput] = useState('')

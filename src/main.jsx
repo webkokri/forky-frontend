@@ -5,6 +5,7 @@ import App from './App'
 import { SiteProvider } from './context/SiteContext'
 import { AuthProvider } from './context/AuthContext'
 import { PartnerAuthProvider } from './context/PartnerAuth'
+import { ModeProvider } from './context/ModeContext'
 import { LocationProvider } from './context/LocationContext'
 import { CartProvider } from './context/CartContext'
 import './index.css'
@@ -16,9 +17,11 @@ ReactDOM.createRoot(document.getElementById('root')).render(
       <AuthProvider>
         <PartnerAuthProvider>
           <LocationProvider>
-            <CartProvider>
-              <App />
-            </CartProvider>
+            <ModeProvider>
+              <CartProvider>
+                <App />
+              </CartProvider>
+            </ModeProvider>
           </LocationProvider>
         </PartnerAuthProvider>
       </AuthProvider>

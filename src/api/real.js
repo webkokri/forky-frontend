@@ -24,13 +24,13 @@ export const real = {
     }
   },
   // Browse vendors: { vertical: 'FOOD'|'RETAIL', storeType, cuisine (slug), q }
-  listVendors: async ({ vertical, storeType, cuisine, q } = {}) => {
-    const res = await http('/public/stores', { params: { vertical, storeType, cuisine, q, ...geo(), limit: 50 }, auth: false })
+  listVendors: async ({ vertical, storeType, cuisine, q, fulfilment } = {}) => {
+    const res = await http('/public/stores', { params: { vertical, storeType, cuisine, q, fulfilment, ...geo(), limit: 50 }, auth: false })
     return res.data.map(toVendor)
   },
   // One page of vendors for infinite scroll: { items, meta: { page, limit, total, totalPages } }
-  listVendorsPage: async ({ vertical, storeType, cuisine, q, openNow, sort } = {}, page = 1, limit = 12) => {
-    const res = await http('/public/stores', { params: { vertical, storeType, cuisine, q, sort, ...(openNow ? { openNow: true } : {}), ...geo(), page, limit }, auth: false })
+  listVendorsPage: async ({ vertical, storeType, cuisine, q, openNow, sort, fulfilment } = {}, page = 1, limit = 12) => {
+    const res = await http('/public/stores', { params: { vertical, storeType, cuisine, q, sort, fulfilment, ...(openNow ? { openNow: true } : {}), ...geo(), page, limit }, auth: false })
     return { items: res.data.map(toVendor), meta: res.meta }
   },
   listRestaurants: (opts = {}) => real.listVendors({ ...opts, vertical: 'FOOD' }),
@@ -44,7 +44,7 @@ export const real = {
     return toRestaurantDetail(detail, reviews)
   },
   // Cuisine chips for restaurants only (the cuisine list also holds grocery departments).
-  listFoodCategories: async () => (await real.home('FOOD')).cuisines,
+  listFoodCategories: async () => (await real.home('FOOD')).cuisines.filter((c) => c.count > 0),
   // Offers shown on the home page: platform deals + restaurant promotions.
   listCoupons: async () => {
     const [deals, home] = await Promise.all([http('/public/deals', { auth: false }).catch(() => []), real.home().catch(() => null)])

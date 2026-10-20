@@ -1,9 +1,13 @@
 import { useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useCart } from '../context/CartContext'
 import { useLocation2 } from '../context/LocationContext'
 import { useAuth } from '../context/AuthContext'
 import { useSite } from '../context/SiteContext'
+import { useMode } from '../context/ModeContext'
+import { api } from '../api'
+import { useAsync } from '../utils/useAsync'
+import AddressSearch from './AddressSearch'
 
 // Logo from the website settings (branding.logo); the bundled icon + wordmark is the fallback.
 export function Logo({ dark }) {
@@ -21,33 +25,62 @@ export function Logo({ dark }) {
 }
 
 function LocationPicker({ mobile }) {
-  const { label, loc, status, error, cities, detect, selectZone, serviceable } = useLocation2()
+  const { label, loc, status, error, cities, detect, selectZone, selectCustom, serviceable } = useLocation2()
+  const { pickup } = useMode()
   const [open, setOpen] = useState(false)
-  const text = status === 'loading' ? 'Detecting…' : (mobile && loc?.area) || label || 'Select location'
+  const [picked, setPicked] = useState(null)
+  const [notes, setNotes] = useState('')
+  const text = status === 'loading' ? 'Detecting…' : (mobile && loc?.area && !loc?.custom ? loc.area : label) || 'Select location'
+  const close = () => { setOpen(false); setPicked(null); setNotes('') }
   return (
     <div className={mobile ? 'relative shrink-0' : 'relative hidden lg:block'}>
-      <button onClick={() => setOpen((o) => !o)} className={mobile ? 'flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1.5 text-sm font-bold text-brand-700' : 'flex items-center gap-1 whitespace-nowrap text-left'} title="Delivery location" aria-expanded={open}>
-        {!mobile && <span className="text-xs text-ink-500">Deliver to</span>}
+      <button onClick={() => (open ? close() : setOpen(true))} className={mobile ? 'flex items-center gap-1 rounded-full bg-brand-50 px-3 py-1.5 text-sm font-bold text-brand-700' : 'flex items-center gap-1 whitespace-nowrap text-left'} title="Delivery location" aria-expanded={open}>
+        {!mobile && <span className="text-xs text-ink-500">{pickup ? 'Pick up near' : 'Deliver to'}</span>}
         <span className={`truncate text-sm font-bold ${mobile ? 'max-w-[8rem]' : 'max-w-[200px]'}`}>📍 {text} ▾</span>
       </button>
       {open && (
         <div className={`absolute left-0 top-full z-40 mt-2 rounded-2xl border border-ink-100 bg-white p-4 shadow-xl ${mobile ? 'w-[calc(100vw-2rem)] max-w-sm' : 'w-80'}`}>
-          <button onClick={() => { detect(); setOpen(false) }} className="btn-primary w-full">◎ Use my current location</button>
-          {!serviceable && <p className="mt-2 text-xs text-rose-600">We don’t deliver to your current location yet. Pick an area below.</p>}
-          {error && <p className="mt-2 text-xs text-rose-600">{error}</p>}
-          <div className="mt-3 max-h-64 space-y-3 overflow-y-auto">
-            {cities.map((c) => (
-              <div key={c.id}>
-                <div className="text-xs font-bold uppercase tracking-wider text-ink-500">{c.name}, {c.province}</div>
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
-                  {c.zones.map((z) => <button key={z.id} onClick={() => { selectZone(c, z); setOpen(false) }} className="chip !px-3 !py-1 text-xs">{z.name}</button>)}
-                </div>
+          {picked ? (
+            <div>
+              <div className="flex items-start gap-3 rounded-xl bg-cream p-3"><span aria-hidden>📍</span><div className="min-w-0 flex-1"><div className="truncate text-sm font-bold">{picked.line1}</div><div className="text-xs text-ink-500">{[picked.city, picked.province, picked.postalCode].filter(Boolean).join(', ')}</div></div><button onClick={() => setPicked(null)} className="text-xs font-bold text-brand-600">Change</button></div>
+              <label className="mt-3 block text-xs font-semibold">Unit, buzzer or recipient <span className="font-normal text-ink-500">· optional</span>
+                <input value={notes} onChange={(e) => setNotes(e.target.value)} maxLength={120} placeholder="e.g. Apt 12, ring Sam’s bell" className="mt-1 h-10 w-full rounded-xl border border-ink-100 px-3 text-sm outline-none focus:border-brand-500" /></label>
+              <button onClick={async () => { await selectCustom(picked, notes.trim()); close() }} className="btn-primary mt-3 w-full">{pickup ? 'Use this address' : 'Deliver here'}</button>
+            </div>
+          ) : (
+            <>
+              <AddressSearch autoFocus near={loc} onPick={setPicked} />
+              <button onClick={() => { detect(); close() }} className="btn-primary mt-3 w-full">◎ Use my current location</button>
+              {!serviceable && <p className="mt-2 text-xs text-rose-600">We don’t deliver to this location yet. Pick an area below.</p>}
+              {error && <p className="mt-2 text-xs text-rose-600">{error}</p>}
+              {loc?.custom && <p className="mt-2 rounded-lg bg-brand-50 p-2 text-xs text-brand-700">Using <b>{loc.label}</b>{loc.notes ? ` · ${loc.notes}` : ''}</p>}
+              <div className="mt-3 max-h-56 space-y-3 overflow-y-auto">
+                {cities.map((c) => (
+                  <div key={c.id}>
+                    <div className="text-xs font-bold uppercase tracking-wider text-ink-500">{c.name}, {c.province}</div>
+                    <div className="mt-1.5 flex flex-wrap gap-1.5">{c.zones.map((z) => <button key={z.id} onClick={() => { selectZone(c, z); close() }} className="chip !px-3 !py-1 text-xs">{z.name}</button>)}</div>
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            </>
+          )}
         </div>
       )}
     </div>
+  )
+}
+
+function Bell() {
+  const { user } = useAuth()
+  const { pathname } = useLocation()
+  const { data } = useAsync(() => (user ? api.unreadCount().catch(() => null) : Promise.resolve(null)), [user?.id, pathname])
+  if (!user) return null
+  const n = data?.count ?? data?.unread ?? 0
+  return (
+    <Link to="/account/notifications" aria-label={n ? `${n} unread notifications` : 'Notifications'} className="relative ml-1 grid h-10 w-10 place-items-center rounded-full text-xl hover:bg-brand-50">
+      <span aria-hidden>🔔</span>
+      {n > 0 && <span className="absolute right-0.5 top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-brand-500 px-1 text-[10px] font-bold text-white">{n > 9 ? '9+' : n}</span>}
+    </Link>
   )
 }
 
@@ -96,6 +129,7 @@ export default function Header() {
             <span className="hidden lg:inline">Cart</span>
             {count > 0 && <span className="grid h-5 min-w-5 place-items-center rounded-full bg-white px-1 text-xs font-bold text-brand-600">{count}</span>}
           </Link>
+          <Bell />
           <Account />
         </nav>
       </div>

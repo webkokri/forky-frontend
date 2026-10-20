@@ -10,6 +10,7 @@ import TwoFactorSetup from '../../components/TwoFactorSetup'
 import { Benefits, Field, PartnerHero, Stepper, Steps, field } from '../../components/PartnerKit'
 import { Faq } from '../../components/PageRenderer'
 import { toE164 } from '../drive/Drive'
+import AddressSearch from '../../components/AddressSearch'
 
 const TYPES = [['RESTAURANT', '🍽️', 'Restaurant'], ['CAFE', '☕', 'Cafe'], ['BAKERY', '🥐', 'Bakery'], ['GROCERY', '🛒', 'Grocery store'], ['CONVENIENCE', '🏪', 'Convenience store'], ['SPECIALTY', '🥩', 'Specialty food store']]
 
@@ -42,7 +43,7 @@ export function BusinessApply() {
   const { data: cuisines } = useAsync(() => api.listAllCuisines().catch(() => []), [])
   const nav = useNavigate()
   const [i, setI] = useState(0)
-  const [f, setF] = useState({ storeType: 'RESTAURANT', restaurantName: '', businessName: '', hstNumber: '', description: '', addressLine1: '', addressLine2: '', cityId: '', postalCode: '', province: 'ON', phone: '', email: '', cuisineIds: [], pickupEnabled: true, deliveryEnabled: true, ownerFirstName: '', ownerLastName: '', password: '', agree: false })
+  const [f, setF] = useState({ storeType: 'RESTAURANT', restaurantName: '', businessName: '', hstNumber: '', description: '', addressLine1: '', addressLine2: '', cityId: '', postalCode: '', province: 'ON', phone: '', email: '', cuisineIds: [], pickupEnabled: true, deliveryEnabled: true, ownerFirstName: '', ownerLastName: '', password: '', agree: false, lat: null, lng: null })
   const [setup, setSetup] = useState(null)
   const [verification, setVerification] = useState(null)
   const [err, setErr] = useState('')
@@ -55,7 +56,7 @@ export function BusinessApply() {
 
   const submit = async (e) => {
     e.preventDefault(); setBusy(true); setErr('')
-    const body = { businessName: f.businessName.trim(), restaurantName: f.restaurantName.trim(), storeType: f.storeType, addressLine1: f.addressLine1.trim(), ...(f.addressLine2 && { addressLine2: f.addressLine2 }), city: city?.name || '', cityId, province: f.province, postalCode: f.postalCode.trim(), phone: toE164(f.phone), email: f.email.trim(), ownerFirstName: f.ownerFirstName.trim(), ownerLastName: f.ownerLastName.trim(), password: f.password, pickupEnabled: f.pickupEnabled, deliveryEnabled: f.deliveryEnabled, ...(f.description && { description: f.description }), ...(f.hstNumber && { hstNumber: f.hstNumber }), ...(f.cuisineIds.length && { cuisineIds: f.cuisineIds }) }
+    const body = { businessName: f.businessName.trim(), restaurantName: f.restaurantName.trim(), storeType: f.storeType, addressLine1: f.addressLine1.trim(), ...(f.addressLine2 && { addressLine2: f.addressLine2 }), city: city?.name || '', cityId, province: f.province, postalCode: f.postalCode.trim(), phone: toE164(f.phone), email: f.email.trim(), ownerFirstName: f.ownerFirstName.trim(), ownerLastName: f.ownerLastName.trim(), password: f.password, pickupEnabled: f.pickupEnabled, deliveryEnabled: f.deliveryEnabled, ...(f.description && { description: f.description }), ...(f.hstNumber && { hstNumber: f.hstNumber }), ...(f.cuisineIds.length && { cuisineIds: f.cuisineIds }), ...(f.lat != null && { lat: f.lat, lng: f.lng }) }
     try {
       const res = await api.applyBusiness(body)
       setVerification(res.verification)
@@ -84,6 +85,7 @@ export function BusinessApply() {
         )}
         {i === 1 && (
           <form onSubmit={next} className="grid gap-4 sm:grid-cols-2">
+            <div className="sm:col-span-2"><AddressSearch near={city && { lat: city.centerLat, lng: city.centerLng }} onPick={(p) => setF((x) => ({ ...x, addressLine1: p.line1, postalCode: p.postalCode || x.postalCode, province: p.province || x.province, lat: p.lat, lng: p.lng }))} placeholder="Search your business address (puts you on the map)" /></div>
             <div className="sm:col-span-2"><Field label="Street address"><input required value={f.addressLine1} onChange={set('addressLine1')} className={field} /></Field></div>
             <Field label="Unit / suite"><input value={f.addressLine2} onChange={set('addressLine2')} className={field} /></Field>
             <Field label="City"><select required value={cityId} onChange={set('cityId')} className={field}>{cities.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}</select></Field>

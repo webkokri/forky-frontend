@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { api } from '../../api'
 import { useAsync } from '../../utils/useAsync'
 import { useLocation2 } from '../../context/LocationContext'
+import AddressSearch from '../../components/AddressSearch'
 import { Card, Empty, PageHead } from '../../components/AccountLayout'
 
 const field = 'mt-1 w-full rounded-xl border border-ink-100 bg-white px-3 py-2 text-sm outline-none focus:border-brand-500'
@@ -20,7 +21,7 @@ export default function Addresses() {
   const act = async (fn) => { setErr(''); try { await fn(); reload() } catch (e) { setErr(e.message) } }
   const save = async (e) => {
     e.preventDefault(); setBusy(true); setErr('')
-    const body = { label: f.label, line1: f.line1, line2: f.line2 || undefined, city: f.city, province: f.province, postalCode: f.postalCode, dropoffMethod: f.dropoffMethod, dropoffNotes: f.dropoffNotes || undefined, ...(edit === 'new' && loc?.lat != null ? { lat: loc.lat, lng: loc.lng } : {}) }
+    const body = { label: f.label, line1: f.line1, line2: f.line2 || undefined, city: f.city, province: f.province, postalCode: f.postalCode, dropoffMethod: f.dropoffMethod, dropoffNotes: f.dropoffNotes || undefined, ...(f.lat != null ? { lat: f.lat, lng: f.lng } : edit === 'new' && loc?.lat != null ? { lat: loc.lat, lng: loc.lng } : {}) }
     try { edit === 'new' ? await api.addAddress({ ...body, isDefault: !(data || []).length }) : await api.updateAddress(edit.id, body); setEdit(null); reload() } catch (x) { setErr(x.message) } finally { setBusy(false) }
   }
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value })
@@ -32,6 +33,7 @@ export default function Addresses() {
       {edit && (
         <Card className="mb-6">
           <h2 className="font-display text-xl font-bold">{edit === 'new' ? 'New address' : 'Edit address'}</h2>
+          <div className="mt-4"><AddressSearch near={loc} onPick={(p) => setF((x) => ({ ...x, line1: p.line1, city: p.city || x.city, province: p.province || x.province, postalCode: p.postalCode || x.postalCode, lat: p.lat, lng: p.lng }))} placeholder="Start typing the address to fill it in" /></div>
           <form onSubmit={save} className="mt-4 grid gap-4 sm:grid-cols-2">
             <label className="text-xs font-semibold">Label<input value={f.label} onChange={set('label')} className={field} /></label>
             <label className="text-xs font-semibold">Street address<input required value={f.line1} onChange={set('line1')} className={field} /></label>

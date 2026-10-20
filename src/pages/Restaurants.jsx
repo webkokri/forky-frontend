@@ -6,6 +6,7 @@ import { useInfinite } from '../utils/useInfinite'
 import InfiniteSentinel from '../components/InfiniteSentinel'
 import VendorCard from '../components/VendorCard'
 import { useLocation2 } from '../context/LocationContext'
+import { ModeToggle, useMode } from '../context/ModeContext'
 import { SectionTitle, Skeleton } from '../components/ui'
 
 const SORTS = { relevance: 'Relevance', rating: 'Rating', eta: 'Delivery time', costLow: 'Delivery fee: low to high', price: 'Price level: low to high' }
@@ -14,6 +15,7 @@ const SERVER_SORT = { rating: 'rating', eta: 'eta', costLow: 'fee' }
 
 export default function Restaurants() {
   const { label, loc } = useLocation2()
+  const { mode, pickup } = useMode()
   const [params, setParams] = useSearchParams()
   const cuisine = params.get('cuisine') || ''
   const { data: cats } = useAsync(() => api.listFoodCategories(), [])
@@ -21,7 +23,7 @@ export default function Restaurants() {
   const toggle = (k) => setF((s) => ({ ...s, [k]: !s[k] }))
 
   // Pages load as you scroll; open-now and sorting are done by the API, the rest filters what is loaded.
-  const inf = useInfinite((page) => api.listVendorsPage({ vertical: 'FOOD', cuisine, openNow: f.open, sort: SERVER_SORT[f.sort] }, page), [cuisine, f.open, f.sort, loc?.lat, loc?.lng])
+  const inf = useInfinite((page) => api.listVendorsPage({ vertical: 'FOOD', cuisine, openNow: f.open, sort: SERVER_SORT[f.sort], fulfilment: mode }, page), [cuisine, f.open, f.sort, mode, loc?.lat, loc?.lng])
 
   const shown = useMemo(() => {
     let r = inf.items
@@ -33,7 +35,7 @@ export default function Restaurants() {
 
   return (
     <div className="container-x py-8">
-      <SectionTitle title={cuisine ? `${cats?.find((c) => c.id === cuisine)?.name || cuisine} near you` : 'Restaurants near you'} subtitle={`${inf.loading ? 'Finding' : shown.length} places delivering to ${label || 'your area'}`} />
+      <SectionTitle title={cuisine ? `${cats?.find((c) => c.id === cuisine)?.name || cuisine} near you` : 'Restaurants near you'} subtitle={`${inf.loading ? 'Finding' : shown.length} places ${pickup ? 'for pickup near' : 'delivering to'} ${label || 'your area'}`} />
       <div className="no-scrollbar -mx-4 mb-4 flex gap-2 overflow-x-auto px-4">
         <button onClick={() => setParams({})} className={`chip ${!cuisine ? 'chip-active' : ''}`}>All</button>
         {(cats || []).map((c) => (
@@ -41,6 +43,7 @@ export default function Restaurants() {
         ))}
       </div>
       <div className="sticky top-[6.25rem] z-20 -mx-4 mb-6 flex flex-wrap items-center gap-2 border-b border-ink-100 bg-white px-4 py-3 lg:top-16">
+        <ModeToggle />
         <select value={f.sort} onChange={(e) => setF((s) => ({ ...s, sort: e.target.value }))} className="chip cursor-pointer outline-none">
           {Object.entries(SORTS).map(([k, v]) => <option key={k} value={k}>Sort: {v}</option>)}
         </select>

@@ -3,8 +3,9 @@ import { api } from '../api'
 import { useAsync } from '../utils/useAsync'
 import VendorCard from '../components/VendorCard'
 import Hero from '../components/Hero'
-import { Offers, Cuisines, Trending, Highlights } from '../components/HomeSections'
+import { Offers, Cuisines, Trending, Highlights, OrderAgain } from '../components/HomeSections'
 import { useLocation2 } from '../context/LocationContext'
+import { useMode } from '../context/ModeContext'
 import { SectionTitle, Skeleton, Thumb } from '../components/ui'
 
 const Grid = ({ list, n = 8 }) => (
@@ -15,8 +16,9 @@ const Grid = ({ list, n = 8 }) => (
 
 export default function Home() {
   const { city, loc, serviceable } = useLocation2()
+  const { mode } = useMode()
   const { data: home, error } = useAsync(() => api.home('FOOD'), [loc?.lat, loc?.lng])
-  const { data: stores } = useAsync(() => api.listStores(), [loc?.lat, loc?.lng])
+  const { data: stores } = useAsync(() => api.listStores({ fulfilment: mode }), [mode, loc?.lat, loc?.lng])
   const { data: storeTypes } = useAsync(() => api.listStoreTypes('RETAIL'), [loc?.lat, loc?.lng])
   const { data: coupons } = useAsync(() => api.listCoupons(), [loc?.lat, loc?.lng])
   const empty = home && stores && !home.nearby.length && !home.popular.length && !stores.length
@@ -28,7 +30,8 @@ export default function Home() {
         {!serviceable && <p className="rounded-2xl bg-brand-50 p-4 text-sm font-semibold text-brand-700">We don’t deliver to your current location yet. Choose an area from “Deliver to” in the header to see restaurants.</p>}
         {error && <p className="rounded-2xl bg-rose-50 p-4 text-sm text-rose-700">Couldn’t load restaurants right now. Please try again shortly.</p>}
         <Offers coupons={coupons || []} banners={home?.banners || []} />
-        <Cuisines cats={home?.cuisines} />
+        <OrderAgain />
+        <Cuisines cats={(home?.cuisines || []).filter((c) => c.count > 0)} />
         {empty && <p className="rounded-3xl border border-dashed border-ink-300 p-10 text-center text-ink-500">No restaurants are open near {city || 'you'} yet. Check back soon!</p>}
         {home?.popular.length > 0 && <Trending list={home.popular} />}
         {(!home || home.nearby.length > 0) && (

@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom'
 import TagSearch from './TagSearch'
+import { ModeToggle } from '../context/ModeContext'
 import { useLocation2 } from '../context/LocationContext'
 
 const TRY = ['biryani, pizza', 'milk, bread, eggs', 'dosa, filter coffee']
@@ -32,7 +33,8 @@ export default function Hero({ banner }) {
           </h1>
           <p className="mt-7 max-w-md text-lg text-ink-500">Tell us everything you’re after, separated by commas. We’ll find the closest kitchens and stores that have it.</p>
 
-          <div className="mt-8 max-w-xl rounded-3xl border border-ink-100 bg-white p-3 shadow-card">
+          <ModeToggle className="mt-7" />
+          <div className="mt-4 max-w-xl rounded-3xl border border-ink-100 bg-white p-3 shadow-card">
             <TagSearch large shape="rounded-2xl" onSubmit={go} placeholder="biryani, pizza, milk…" className="bg-cream !shadow-none !ring-0 focus-within:!ring-2 focus-within:!ring-brand-500"
               prefix={<span className="shrink-0 text-lg" aria-hidden>🔍</span>} />
             <div className="flex flex-wrap items-center gap-2 px-1 pb-1 pt-3 text-sm">

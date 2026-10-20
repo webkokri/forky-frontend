@@ -5,6 +5,7 @@ import { useCart } from '../context/CartContext'
 import { api } from '../api'
 import { useAsync, money } from '../utils/useAsync'
 import { ErrorState, Skeleton } from '../components/ui'
+import TrackingMap from '../components/TrackingMap'
 
 const STEPS = [['PLACED', 'Order placed'], ['ACCEPTED', 'Accepted'], ['PREPARING', 'Preparing'], ['READY', 'Ready'], ['PICKED_UP', 'Out for delivery'], ['DELIVERED', 'Delivered']]
 const ORDER = STEPS.map(([k]) => k)
@@ -36,6 +37,9 @@ export default function OrderPage() {
         <p className="mt-2 text-ink-500">Order {t.code} · {t.restaurant?.name}</p>
         {t.estimatedDeliveryAt && !cancelled && t.status !== 'DELIVERED' && <p className="mt-1 text-sm font-semibold text-brand-600">Estimated {t.fulfilment === 'PICKUP' ? 'ready' : 'arrival'} {new Date(t.estimatedDeliveryAt).toLocaleTimeString('en-CA', { hour: 'numeric', minute: '2-digit' })}</p>}
       </div>
+      {!cancelled && t.fulfilment !== 'PICKUP' && (
+        <div className="mt-8"><TrackingMap restaurant={t.restaurant} dropoff={t.deliveryAddress} driver={t.driver} delivered={t.status === 'DELIVERED'} />{t.driver?.name && t.status !== 'DELIVERED' && <p className="mt-2 text-center text-xs text-ink-500">{t.driver.name} is on the way{t.driver.vehicleType ? ` · ${t.driver.vehicleColor || ''} ${t.driver.vehicleType.toLowerCase()}`.trimEnd() : ''}</p>}</div>
+      )}
       {!cancelled && (
         <ol className="mt-10 grid grid-cols-3 gap-x-2 gap-y-4 text-xs font-semibold sm:grid-cols-6">
           {STEPS.map(([k, l], i) => <li key={k}><div className={`mb-2 h-1.5 rounded-full ${i <= at ? 'bg-brand-500' : 'bg-ink-100'}`} />{l}</li>)}

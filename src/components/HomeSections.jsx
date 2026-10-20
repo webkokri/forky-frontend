@@ -1,5 +1,9 @@
 import { useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
+import { api } from '../api'
+import { useAuth } from '../context/AuthContext'
+import { useCart } from '../context/CartContext'
+import { useAsync, money } from '../utils/useAsync'
 import { Rating, SectionTitle, Thumb } from './ui'
 import { priceMarks, etaText } from './VendorCard'
 
@@ -97,6 +101,33 @@ export function Trending({ list = [] }) {
               </div>
             </div>
           </Link>
+        ))}
+      </Scroller>
+    </section>
+  )
+}
+
+// Signed-in customers: jump back into places they ordered from (one tap puts the same order in the cart).
+export function OrderAgain() {
+  const { user } = useAuth()
+  const cart = useCart()
+  const nav = useNavigate()
+  const { data } = useAsync(() => (user ? api.listOrders({ limit: 20 }) : Promise.resolve(null)), [user?.id])
+  const [busy, setBusy] = useState('')
+  const seen = new Set()
+  const list = (data?.data || []).filter((o) => /DELIVERED|COMPLETED/.test(o.status) && o.restaurantSlug && !seen.has(o.restaurantSlug) && seen.add(o.restaurantSlug)).slice(0, 6)
+  if (!list.length) return null
+  const again = async (o) => { setBusy(o.id); try { await api.reorder(o.id); await cart.restore(); nav('/cart') } catch { nav(`/${o.retail ? 'store' : 'restaurant'}/${o.restaurantSlug}`) } finally { setBusy('') } }
+  return (
+    <section>
+      <SectionTitle title="Order again" subtitle="Your usual spots, one tap away" />
+      <Scroller>
+        {list.map((o) => (
+          <div key={o.id} className="w-64 shrink-0 snap-start rounded-2xl border border-ink-100 bg-white p-4 shadow-card">
+            <Link to={`/${o.retail ? 'store' : 'restaurant'}/${o.restaurantSlug}`} className="block truncate font-display text-lg font-bold hover:text-brand-600">{o.restaurantName}</Link>
+            <p className="mt-0.5 text-xs text-ink-500">Last order {new Date(o.createdAt).toLocaleDateString('en-CA', { month: 'short', day: 'numeric' })} · {money(o.total ?? o.subtotal)}</p>
+            <button onClick={() => again(o)} disabled={busy === o.id} className="btn-primary mt-3 w-full !py-2 text-sm">{busy === o.id ? 'Adding…' : '↻ Reorder'}</button>
+          </div>
         ))}
       </Scroller>
     </section>
