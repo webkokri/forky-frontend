@@ -105,7 +105,7 @@ export default function Assistant() {
 
       {open && (
         <div role="dialog" aria-label={name} className="fixed inset-0 z-50 flex flex-col bg-white sm:inset-auto sm:bottom-4 sm:right-4 sm:h-[640px] sm:max-h-[calc(100vh-2rem)] sm:w-[400px] sm:overflow-hidden sm:rounded-3xl sm:shadow-2xl sm:ring-1 sm:ring-ink-100">
-          <header className="flex items-center gap-3 bg-gradient-to-r from-ink-900 via-violet-900 to-violet-700 p-4 text-white">
+          <header className="flex items-center gap-3 bg-gradient-to-r from-brand-500 to-flame-600 p-4 text-white">
             <span className="grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-full bg-white">{cfg.logoUrl ? <img src={cfg.logoUrl} alt="" className="h-8 w-8 object-contain" /> : <span aria-hidden>🍴</span>}</span>
             <div className="min-w-0 flex-1"><div className="truncate font-bold">{name}</div><div className="truncate text-xs text-white/85">{bag.restaurant ? `Ordering from ${bag.restaurant.name}` : 'Find food and order in chat'}</div></div>
             {messages.length > 0 && <button onClick={reset} className="rounded-full px-2.5 py-1 text-xs font-semibold text-white/90 hover:bg-white/15">New chat</button>}

@@ -22,10 +22,10 @@ export function Scroller({ children, className = '' }) {
 }
 
 const FALLBACK = [
-  { id: 'f1', title: 'Hungry?', subtitle: 'Order from the best local restaurants', cls: 'from-brand-500 to-pink-500 text-white', to: '/restaurants', emoji: '🍕' },
-  { id: 'f2', title: 'Search by list', subtitle: 'Type items separated by commas', cls: 'from-ink-900 to-violet-700 text-white', to: '/search', emoji: '🍛' },
+  { id: 'f1', title: 'Hungry?', subtitle: 'Order from the best local restaurants', cls: 'from-brand-500 to-flame-600 text-white', to: '/restaurants', emoji: '🍕' },
+  { id: 'f2', title: 'Search by list', subtitle: 'Type items separated by commas', cls: 'from-ink-900 to-[#3b3a8f] text-white', to: '/search', emoji: '🍛' },
 ]
-const CLS = ['from-brand-500 to-pink-500 text-white', 'from-ink-900 to-violet-700 text-white', 'from-cyan-500 to-violet-600 text-white', 'from-violet-600 to-ink-900 text-white', 'from-brand-400 to-sun-500 text-ink-900']
+const CLS = ['from-brand-500 to-flame-600 text-white', 'from-ink-900 to-[#3b3a8f] text-white', 'from-sun-300 to-brand-400 text-ink-900', 'from-teal-600 to-ink-900 text-white', 'from-pink-500 to-brand-500 text-white']
 const bannerTo = (link = '') => (link.startsWith('/') ? link : link.startsWith('promo:') ? '/restaurants' : '/restaurants')
 
 export function Offers({ coupons = [], banners = [] }) {
@@ -49,8 +49,8 @@ export function Offers({ coupons = [], banners = [] }) {
         ))}
         {coupons.map((c) => (
           <button key={c.code} onClick={() => copy(c.code)} className="relative flex h-40 w-72 shrink-0 snap-start flex-col justify-between rounded-2xl border-2 border-dashed border-brand-300 bg-white p-6 text-left transition hover:border-brand-500 sm:w-80">
-            <span className="absolute -left-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full bg-[#f5f6fb]" />
-            <span className="absolute -right-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full bg-[#f5f6fb]" />
+            <span className="absolute -left-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full bg-[#fffaf3]" />
+            <span className="absolute -right-3 top-1/2 h-6 w-6 -translate-y-1/2 rounded-full bg-[#fffaf3]" />
             <p className="text-sm font-semibold text-ink-700">{c.description}</p>
             <div className="flex items-center justify-between">
               <span className="rounded-lg bg-brand-600 px-3 py-1 text-sm font-extrabold tracking-widest text-white">{c.code}</span>
@@ -63,7 +63,7 @@ export function Offers({ coupons = [], banners = [] }) {
   )
 }
 
-const TINTS = [['#ece6ff', 'group-hover:ring-violet-500'], ['#d8f6fd', 'group-hover:ring-cyan-500'], ['#dcfbe9', 'group-hover:ring-teal-500'], ['#ffe6dd', 'group-hover:ring-brand-500'], ['#fff2c7', 'group-hover:ring-sun-500'], ['#e1ecff', 'group-hover:ring-sky-500']]
+const TINTS = [['#fff0c2', 'group-hover:ring-sun-500'], ['#d9f7f1', 'group-hover:ring-teal-500'], ['#ffe0e7', 'group-hover:ring-pink-500'], ['#dff0ff', 'group-hover:ring-sky-500'], ['#ffe3cf', 'group-hover:ring-brand-500'], ['#ebe3ff', 'group-hover:ring-[#8b6cf0]']]
 
 export function Cuisines({ cats }) {
   if (!cats?.length) return null
@@ -90,7 +90,7 @@ export function Trending({ list = [] }) {
         {list.map((r, i) => (
           <Link key={r.id} to={`/restaurant/${r.slug}`} className="group relative w-64 shrink-0 snap-start overflow-hidden rounded-2xl border border-ink-100 bg-white shadow-card transition duration-300 hover:-translate-y-1 hover:border-brand-200 hover:shadow-xl hover:shadow-brand-900/10">
             <Thumb emoji={r.emoji} bg={r.bg} src={r.image} size="text-7xl" className="h-36 w-full" />
-            <span className="absolute left-3 top-3 rounded-md bg-violet-600 px-2 py-0.5 font-display text-sm font-bold text-white shadow">#{i + 1}</span>
+            <span className="absolute left-3 top-3 rounded-md bg-sun-300 px-2 py-0.5 font-display text-sm font-bold text-ink-900 shadow">#{i + 1}</span>
             <span className="absolute right-3 top-3 rounded-full bg-ink-900/80 px-2.5 py-1 text-xs font-semibold text-white backdrop-blur">{etaText(r)}</span>
             <div className="p-4">
               <h3 className="truncate font-display text-lg font-bold">{r.name}</h3>
@@ -135,7 +135,7 @@ export function OrderAgain() {
 }
 
 export function Highlights() {
-  const items = [['⚡', 'Fast delivery', 'Hot meals from nearby kitchens in about 30 minutes.', 'bg-brand-500', 'bg-brand-50'], ['🛡️', 'Safe payments', 'Wallet credit today, cards and Apple / Google Pay soon.', 'bg-violet-500', 'bg-violet-50'], ['📍', 'Live tracking', 'Follow your order from kitchen to doorstep.', 'bg-cyan-500', 'bg-cyan-50']]
+  const items = [['⚡', 'Fast delivery', 'Hot meals from nearby kitchens in about 30 minutes.', 'bg-sun-300', 'bg-sun-50'], ['🛡️', 'Safe payments', 'Wallet credit today, cards and Apple / Google Pay soon.', 'bg-teal-500', 'bg-teal-50'], ['📍', 'Live tracking', 'Follow your order from kitchen to doorstep.', 'bg-pink-500', 'bg-pink-50']]
   return (
     <section className="grid gap-4 sm:grid-cols-3">
       {items.map(([e, h, p, icon, bg]) => (

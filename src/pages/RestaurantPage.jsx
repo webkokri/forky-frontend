@@ -15,13 +15,13 @@ const STICKY = 'top-[6.25rem] lg:top-16'
 function ProductCard({ item, vendor }) {
   const off = !vendor.isOpen || !item.available
   return (
-    <div className={`flex flex-col rounded-2xl border border-ink-100 bg-white p-3 shadow-card transition hover:border-violet-200 ${off ? 'opacity-70' : ''}`}>
+    <div className={`flex flex-col rounded-2xl border border-ink-100 bg-white p-3 shadow-card transition hover:border-brand-200 ${off ? 'opacity-70' : ''}`}>
       <div className="relative">
         <Thumb emoji={item.emoji} bg={item.bg} src={item.image} className="aspect-square w-full rounded-xl" size="text-5xl" />
         {item.lowStock && item.inStock && <span className="absolute left-2 top-2 rounded-full bg-amber-500 px-2 py-0.5 text-[10px] font-bold text-white">Low stock</span>}
         {item.ageRestricted && <span className="absolute right-2 top-2 rounded-full bg-ink-900 px-2 py-0.5 text-[10px] font-bold text-white">{item.minAge}+</span>}
       </div>
-      {item.brand && <div className="mt-2 text-[11px] font-bold uppercase tracking-wide text-violet-600">{item.brand}</div>}
+      {item.brand && <div className="mt-2 text-[11px] font-bold uppercase tracking-wide text-brand-600">{item.brand}</div>}
       <h4 className={`${item.brand ? '' : 'mt-2 '}text-sm font-semibold leading-snug`}>{item.name}</h4>
       <p className="text-xs text-ink-500">{item.byWeight ? `${item.unit} · ${item.perUnit}` : item.unit}</p>
       <div className="mt-auto flex items-center justify-between gap-2 pt-3">
@@ -35,7 +35,7 @@ function ProductCard({ item, vendor }) {
 function DishCard({ item, vendor }) {
   const off = !vendor.isOpen || !item.available
   return (
-    <article className={`flex gap-4 rounded-2xl border border-ink-100 bg-white p-4 shadow-card transition hover:border-violet-200 ${off ? 'opacity-70' : ''}`}>
+    <article className={`flex gap-4 rounded-2xl border border-ink-100 bg-white p-4 shadow-card transition hover:border-brand-200 ${off ? 'opacity-70' : ''}`}>
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-center gap-2">
           <VegMark veg={item.veg} />
@@ -78,7 +78,7 @@ function CartPanel({ vendor }) {
           <div className="mt-3 flex justify-between border-t border-ink-100 pt-3 font-bold"><span>Subtotal</span><span>{money(cart.subtotal)}</span></div>
           {vendor.minOrder > 0 && (
             <div className="mt-3">
-              <div className="h-1.5 overflow-hidden rounded-full bg-ink-100"><div className="h-full rounded-full bg-gradient-to-r from-brand-500 to-violet-500 transition-all" style={{ width: `${pct}%` }} /></div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-ink-100"><div className="h-full rounded-full bg-gradient-to-r from-brand-500 to-sun-500 transition-all" style={{ width: `${pct}%` }} /></div>
               <p className="mt-1.5 text-xs text-ink-500">{short > 0 ? `Add ${money(short)} more to reach the ${money(vendor.minOrder)} minimum` : 'Minimum order reached 🎉'}</p>
             </div>
           )}
@@ -138,9 +138,9 @@ export default function RestaurantPage() {
           <div className="mt-5 grid gap-6 lg:grid-cols-[minmax(0,1fr)_320px]">
             <div className="min-w-0">
               {/* sticky toolbar: categories + search + veg */}
-              <div className={`sticky ${STICKY} z-20 -mx-4 border-b border-ink-100 bg-[#f5f6fb]/90 px-4 py-3 backdrop-blur-xl sm:mx-0 sm:rounded-2xl sm:border sm:bg-white/90 sm:px-4`}>
+              <div className={`sticky ${STICKY} z-20 -mx-4 border-b border-ink-100 bg-[#fffaf3]/90 px-4 py-3 backdrop-blur-xl sm:mx-0 sm:rounded-2xl sm:border sm:bg-white/90 sm:px-4`}>
                 <div className="flex items-center gap-2">
-                  <label className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-xl border border-ink-100 bg-white px-3 focus-within:border-violet-500">
+                  <label className="flex h-10 min-w-0 flex-1 items-center gap-2 rounded-xl border border-ink-100 bg-white px-3 focus-within:border-brand-500">
                     <span aria-hidden className="text-ink-300">⌕</span>
                     <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={isStore ? `Search ${r.itemLabel || 'products'}` : 'Search this menu'} aria-label="Search menu" className="min-w-0 flex-1 bg-transparent text-sm outline-none" />
                     {q && <button onClick={() => setQ('')} aria-label="Clear search" className="text-ink-300 hover:text-ink-900">✕</button>}
@@ -149,14 +149,14 @@ export default function RestaurantPage() {
                 </div>
                 {menu.length > 1 && (
                   <div ref={barRef} className="no-scrollbar -mx-1 mt-2.5 flex gap-1.5 overflow-x-auto px-1">
-                    {menu.map((c) => <button key={c.id} data-on={active === c.id} onClick={() => jump(c.id)} className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${active === c.id ? 'bg-brand-500 text-white shadow' : 'bg-white text-ink-700 ring-1 ring-ink-100 hover:ring-violet-300'}`}>{c.name}</button>)}
+                    {menu.map((c) => <button key={c.id} data-on={active === c.id} onClick={() => jump(c.id)} className={`shrink-0 rounded-full px-3.5 py-1.5 text-sm font-semibold transition ${active === c.id ? 'bg-brand-500 text-white shadow' : 'bg-white text-ink-700 ring-1 ring-ink-100 hover:ring-brand-300'}`}>{c.name}</button>)}
                   </div>
                 )}
               </div>
 
               {popular.length > 0 && (
                 <section className="mt-6">
-                  <h3 className="mb-3 flex items-center gap-2 font-display text-xl font-bold"><span aria-hidden className="h-5 w-1.5 rounded-full bg-gradient-to-b from-brand-500 to-violet-500" />Popular right now</h3>
+                  <h3 className="mb-3 flex items-center gap-2 font-display text-xl font-bold"><span aria-hidden className="h-5 w-1.5 rounded-full bg-gradient-to-b from-brand-500 to-sun-500" />Popular right now</h3>
                   <div className="no-scrollbar -mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
                     {popular.map((i) => (
                       <div key={i.id} className="w-44 shrink-0 rounded-2xl border border-ink-100 bg-white p-3 shadow-card">

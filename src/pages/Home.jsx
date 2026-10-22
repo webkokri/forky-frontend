@@ -47,7 +47,7 @@ export default function Home() {
               <div className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-4">
                 {storeTypes.filter((t) => t.count > 0).map((t) => (
                   <Link key={t.type} to={`/groceries?type=${t.type}`} className="group flex items-center gap-3 rounded-2xl border border-ink-100 bg-white p-4 shadow-card transition hover:-translate-y-0.5 hover:border-brand-200">
-                    <Thumb emoji={{ GROCERY: '🛒', CONVENIENCE: '🏪', SPECIALTY: '🥩' }[t.type] || '🛍️'} bg={{ GROCERY: '#ece6ff', CONVENIENCE: '#d8f6fd', SPECIALTY: '#ffe6dd' }[t.type] || '#e1ecff'} className="h-12 w-12 rounded-xl" size="text-2xl" />
+                    <Thumb emoji={{ GROCERY: '🛒', CONVENIENCE: '🏪', SPECIALTY: '🥩' }[t.type] || '🛍️'} bg={{ GROCERY: '#d9f7f1', CONVENIENCE: '#fff0c2', SPECIALTY: '#ffe0e7' }[t.type] || '#dff0ff'} className="h-12 w-12 rounded-xl" size="text-2xl" />
                     <div><div className="text-sm font-bold group-hover:text-brand-600">{t.pluralLabel}</div><div className="text-xs text-ink-500">{t.count} nearby</div></div>
                   </Link>
                 ))}

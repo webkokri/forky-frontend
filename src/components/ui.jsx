@@ -71,7 +71,7 @@ export function SectionTitle({ title, subtitle, action }) {
   return (
     <div className="mb-4 flex items-end justify-between gap-4">
       <div>
-        <h2 className="flex items-center gap-2.5 font-display text-2xl font-bold tracking-tight sm:text-3xl"><span aria-hidden className="h-6 w-1.5 rounded-full bg-gradient-to-b from-brand-500 to-violet-500" />{title}</h2>
+        <h2 className="flex items-center gap-2.5 font-display text-2xl font-bold tracking-tight sm:text-3xl"><span aria-hidden className="h-6 w-1.5 rounded-full bg-gradient-to-b from-brand-500 to-sun-500" />{title}</h2>
         {subtitle && <p className="mt-1 text-sm text-ink-500">{subtitle}</p>}
       </div>
       {action}

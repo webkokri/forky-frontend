@@ -67,7 +67,7 @@ export function BusinessApply() {
 
   if (setup) return <Shell title="Application received 🎉" subtitle="Secure your owner account to continue." footer=""><TwoFactorSetup tempToken={setup} onEnable={async (t, c) => { await enable2fa(t, c); nav('/business/onboarding', { state: { verification } }) }} /></Shell>
   return (
-    <div className="bg-gradient-to-br from-[#eef0ff] to-[#ffe9e2] px-4 py-10">
+    <div className="bg-gradient-to-br from-[#fff6d6] to-[#ffe3c9] px-4 py-10">
       <div className="mx-auto max-w-3xl rounded-3xl border border-ink-100 bg-white p-6 shadow-card sm:p-10">
         <h1 className="font-display text-3xl font-bold">Partner application</h1><p className="mt-1 text-sm text-ink-500">Already applied? <Link to="/business/login" className="font-bold text-brand-600">Sign in</Link></p>
         <div className="mt-6"><Stepper steps={['Business', 'Location', 'Service', 'Owner']} index={i} /></div>

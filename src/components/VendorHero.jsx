@@ -25,7 +25,7 @@ export default function VendorHero({ vendor }) {
       <div className="relative h-40 overflow-hidden bg-ink-900 sm:h-56">
         {vendor.image ? <img src={vendor.image} alt="" className="h-full w-full object-cover opacity-80" /> : (
           <>
-            <div className="absolute inset-0 [background:radial-gradient(circle_at_85%_20%,rgba(124,92,255,.55),transparent_45%),radial-gradient(circle_at_10%_90%,rgba(238,80,52,.5),transparent_45%)]" />
+            <div className="absolute inset-0 [background:radial-gradient(circle_at_85%_20%,rgba(255,193,7,.5),transparent_45%),radial-gradient(circle_at_10%_90%,rgba(20,184,166,.35),transparent_45%)]" />
             <div className="absolute inset-0 opacity-20 [background-image:linear-gradient(rgba(255,255,255,.25)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,.25)_1px,transparent_1px)] [background-size:40px_40px]" />
             <span aria-hidden className="absolute -bottom-6 right-6 text-[9rem] opacity-90 drop-shadow-2xl sm:right-16 sm:text-[12rem]">{vendor.emoji}</span>
           </>
@@ -64,7 +64,7 @@ export default function VendorHero({ vendor }) {
             <div className="no-scrollbar mt-4 flex gap-2 overflow-x-auto">
               {vendor.offer && <span className="shrink-0 rounded-xl bg-sun-300 px-3 py-2 text-xs font-extrabold text-ink-900">🏷️ {vendor.offer}</span>}
               {(vendor.promos || []).map((p) => (
-                <span key={p.id} className="shrink-0 rounded-xl border border-dashed border-violet-300 bg-violet-50 px-3 py-2 text-xs"><b className="text-violet-700">{p.code}</b> <span className="text-ink-700">{p.description || p.label}</span></span>
+                <span key={p.id} className="shrink-0 rounded-xl border border-dashed border-brand-300 bg-brand-50 px-3 py-2 text-xs"><b className="text-brand-700">{p.code}</b> <span className="text-ink-700">{p.description || p.label}</span></span>
               ))}
             </div>
           )}

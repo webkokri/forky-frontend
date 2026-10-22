@@ -32,9 +32,9 @@ export default function Dashboard() {
     <div className="space-y-6">
       <PageHead title={`Hi ${user.firstName} 👋`} subtitle="Here’s what’s happening with your Forky account." />
       <div className="grid grid-cols-3 gap-3 sm:gap-4">
-        <Stat tint="bg-violet-100" icon="📦" label="Total orders" value={profile?.totalOrders ?? '–'} to="/account/orders" />
-        <Stat tint="bg-cyan-100" icon="💳" label="Wallet balance" value={profile ? money(profile.walletBalance) : '–'} to="/account/payments" />
-        <Stat tint="bg-brand-100" icon="📍" label="Saved addresses" value={profile?.addressCount ?? '–'} to="/account/addresses" />
+        <Stat tint="bg-sun-100" icon="📦" label="Total orders" value={profile?.totalOrders ?? '–'} to="/account/orders" />
+        <Stat tint="bg-teal-100" icon="💳" label="Wallet balance" value={profile ? money(profile.walletBalance) : '–'} to="/account/payments" />
+        <Stat tint="bg-pink-100" icon="📍" label="Saved addresses" value={profile?.addressCount ?? '–'} to="/account/addresses" />
       </div>
 
       {cart.count > 0 && (

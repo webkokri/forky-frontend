@@ -5,7 +5,7 @@ const STORE_EMOJI = { GROCERY: '🛒', CONVENIENCE: '🏪', SPECIALTY: '🥩' }
 const PRODUCT_EMOJI = [[/produce|fruit|veg/i, '🥬'], [/frozen|chilled|dairy/i, '🧊'], [/drink|beverage/i, '🧃'], [/rice|noodle|pantry|grain/i, '🍚'], [/meat|butcher|halal/i, '🥩'], [/bakery|bread/i, '🍞']]
 export const productEmoji = (cat = '') => (PRODUCT_EMOJI.find(([re]) => re.test(cat)) || [0, '🛒'])[1]
 export const emojiFor = (name = '') => EMOJI[name.toLowerCase().replace(/&/g, '').replace(/\s+/g, '-').replace(/-+/g, '-')] || '🍽️'
-const PEACH = ['#ece6ff', '#d8f6fd', '#dcfbe9', '#ffe6dd', '#fff2c7', '#e1ecff']
+const PEACH = ['#ffe9b8', '#d4f5ee', '#ffdbe3', '#d6ecff', '#ffdcc7', '#e6dcff']
 export const bgFor = (id = '') => PEACH[[...id].reduce((a, c) => a + c.charCodeAt(0), 0) % PEACH.length]
 export const absUrl = (u) => u || null
 
@@ -47,7 +47,7 @@ export function toMenuItem(i, category) {
     brand: i.brand, inStock: i.inStock !== false, lowStock: i.lowStock, maxQuantity: i.maxQuantity, ageRestricted: i.ageRestricted, minAge: i.minAge, temperature: i.temperature,
     image: i.imageUrl || null, veg: vegTag(i.dietaryTags), bestseller: i.isPopular, available: i.available !== false && i.inStock !== false,
     unavailableReason: i.unavailableReason, modifierGroups: i.modifierGroups || [], allergens: i.allergens || [], calories: i.calories,
-    emoji: category ? productEmoji(category) : '🍽️', bg: '#eef1fa',
+    emoji: category ? productEmoji(category) : '🍽️', bg: '#fef2ee',
   }
 }
 

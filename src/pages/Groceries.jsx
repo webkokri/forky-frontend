@@ -24,7 +24,7 @@ export default function Groceries() {
 
   return (
     <div className="container-x py-8">
-      <div className="mb-8 rounded-3xl bg-gradient-to-br from-cyan-600 via-violet-700 to-ink-900 p-6 text-white sm:p-8">
+      <div className="mb-8 rounded-3xl bg-gradient-to-br from-teal-600 via-teal-700 to-ink-900 p-6 text-white sm:p-8">
         <p className="text-xs font-bold uppercase tracking-wider text-white/80">Groceries & shops</p>
         <h1 className="mt-2 font-display text-3xl font-bold sm:text-4xl">Stock up, delivered to your door</h1>
         <p className="mt-2 max-w-lg text-sm text-white/85">Fresh produce, pantry staples and specialty foods from stores around {label || 'you'}.</p>

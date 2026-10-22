@@ -8,19 +8,19 @@ export const Field = ({ label, hint, children }) => <label className="block text
 // Landing-page hero shared by /drive and /business.
 export function PartnerHero({ eyebrow, title, accent, text, primary, secondary, emoji }) {
   return (
-    <section className="relative isolate overflow-hidden bg-ink-900 text-white">
-      <div className="pointer-events-none absolute inset-0 -z-10 opacity-60 [background:radial-gradient(circle_at_85%_15%,rgba(124,92,255,.5),transparent_42%),radial-gradient(circle_at_10%_95%,rgba(238,80,52,.45),transparent_42%)]" />
+    <section className="relative isolate overflow-hidden bg-brand-500 text-white">
+      <div className="pointer-events-none absolute inset-0 -z-10 opacity-60 [background:radial-gradient(circle_at_15%_20%,rgba(255,255,255,.2),transparent_40%),radial-gradient(circle_at_90%_90%,rgba(90,25,14,.4),transparent_45%)]" />
       <div className="container-x grid items-center gap-10 py-16 md:grid-cols-[1.2fr_.8fr] md:py-24">
         <div>
           <p className="text-xs font-bold uppercase tracking-[0.2em] text-white/80">{eyebrow}</p>
-          <h1 className="mt-4 font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">{title} <span className="bg-gradient-to-r from-brand-400 via-pink-500 to-violet-300 bg-clip-text text-transparent">{accent}</span></h1>
+          <h1 className="mt-4 font-display text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">{title} <span className="italic text-brand-100">{accent}</span></h1>
           <p className="mt-5 max-w-xl text-lg text-white/85">{text}</p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to={primary.to} className="btn bg-white px-6 py-3 text-ink-900 shadow-lg hover:bg-violet-50">{primary.label} →</Link>
+            <Link to={primary.to} className="btn bg-white px-6 py-3 text-ink-900 shadow-lg hover:bg-brand-50">{primary.label} →</Link>
             {secondary && <Link to={secondary.to} className="btn border border-white/40 px-6 py-3 text-white hover:bg-white/10">{secondary.label}</Link>}
           </div>
         </div>
-        <div className="hidden md:block"><div className="mx-auto grid aspect-square w-72 place-items-center rounded-full bg-white/10 text-[9rem] shadow-2xl shadow-violet-900/50 ring-1 ring-white/25 backdrop-blur-xl">{emoji}</div></div>
+        <div className="hidden md:block"><div className="mx-auto grid aspect-square w-72 place-items-center rounded-full bg-cream text-[9rem] shadow-2xl shadow-brand-900/40 ring-8 ring-white/20">{emoji}</div></div>
       </div>
     </section>
   )
@@ -28,7 +28,7 @@ export function PartnerHero({ eyebrow, title, accent, text, primary, secondary, 
 
 export const Steps = ({ items }) => (
   <ol className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-    {items.map(([t, d], i) => <li key={t} className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card"><span className="grid h-9 w-9 place-items-center rounded-full bg-gradient-to-br from-brand-500 to-violet-600 font-bold text-white">{i + 1}</span><h3 className="mt-3 font-bold">{t}</h3><p className="mt-1 text-sm text-ink-500">{d}</p></li>)}
+    {items.map(([t, d], i) => <li key={t} className="rounded-2xl border border-ink-100 bg-white p-5 shadow-card"><span className="grid h-9 w-9 place-items-center rounded-full bg-brand-500 font-bold text-white">{i + 1}</span><h3 className="mt-3 font-bold">{t}</h3><p className="mt-1 text-sm text-ink-500">{d}</p></li>)}
   </ol>
 )
 

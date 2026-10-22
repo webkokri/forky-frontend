@@ -7,7 +7,7 @@ const field = 'mt-1 w-full rounded-xl border border-ink-100 bg-white px-4 py-2.5
 
 export function Shell({ title, subtitle, children, footer }) {
   return (
-    <div className="grid min-h-[70vh] place-items-center bg-gradient-to-br from-[#eef0ff] to-[#ffe9e2] px-4 py-12">
+    <div className="grid min-h-[70vh] place-items-center bg-gradient-to-br from-[#fff6d6] to-[#ffe3c9] px-4 py-12">
       <div className="w-full max-w-md rounded-3xl border border-ink-100 bg-white p-8 shadow-card">
         <h1 className="font-display text-3xl font-bold">{title}</h1>
         <p className="mt-1 text-sm text-ink-500">{subtitle}</p>
