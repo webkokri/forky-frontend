@@ -113,7 +113,7 @@ export default function Header() {
   const pill = ({ isActive }) => `shrink-0 rounded-full px-4 py-1.5 text-sm font-semibold transition ${isActive ? 'bg-brand-500 text-white shadow-sm' : 'bg-white text-ink-700 ring-1 ring-ink-100'}`
 
   return (
-    <header className="sticky top-0 z-30 border-b border-ink-100 bg-white/95 backdrop-blur">
+    <header className="sticky top-0 z-30 border-b border-ink-100/80 bg-white/80 backdrop-blur-xl">
       <div className="container-x flex h-14 items-center gap-3 lg:h-16 lg:gap-4">
         <Logo />
         <LocationPicker />

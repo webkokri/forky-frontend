@@ -20,7 +20,7 @@ export default function CmsPage({ slug: fixed }) {
   const toc = legal ? page.sections.filter((s) => s.heading) : []
   return (
     <div>
-      <header className="border-b border-brand-100 bg-gradient-to-br from-[#fff6d6] via-[#ffe3c9] to-[#ffc3b0]">
+      <header className="border-b border-brand-100 bg-gradient-to-br from-[#eef0ff] via-[#f3f0ff] to-[#ffe9e2]">
         <div className="container-x py-12 md:py-16">
           <h1 className="max-w-3xl font-display text-4xl font-bold tracking-tight sm:text-5xl">{page.title}</h1>
           {page.subtitle && <p className="mt-3 max-w-2xl text-lg text-ink-700">{page.subtitle}</p>}

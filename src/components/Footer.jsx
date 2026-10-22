@@ -31,7 +31,7 @@ export default function Footer() {
   const copyright = f?.copyright || site?.site?.copyright || `© ${new Date().getFullYear()} ${name}`
 
   return (
-    <footer className="mt-20 bg-ink-900 text-ink-300">
+    <footer className="mt-20 bg-gradient-to-b from-ink-900 to-[#0a0c20] text-ink-300">
       <div className="container-x grid gap-10 py-12 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(4,1fr)]">
         <div>
           <div className="rounded-xl bg-white/95 p-1.5 inline-block [&_span]:inline"><Logo dark /></div>
