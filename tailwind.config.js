@@ -24,6 +24,8 @@ export default {
         cream: '#eef1fa',
         ink: { 900: '#0d1024', 700: '#323658', 500: '#667092', 300: '#b4bad4', 100: '#e4e7f2' },
       },
+      keyframes: { popin: { '0%': { opacity: '0', transform: 'scale(.6) rotate(-12deg)' }, '100%': { opacity: '1', transform: 'scale(1) rotate(0)' } }, floaty: { '0%,100%': { transform: 'translateY(0)' }, '50%': { transform: 'translateY(-10px)' } } },
+      animation: { popin: 'popin .55s cubic-bezier(.2,.9,.3,1.2)', floaty: 'floaty 5s ease-in-out infinite' },
       fontFamily: { display: ['Fraunces', 'Georgia', 'serif'], brand: ['Chewy', 'cursive'], sans: ['"Plus Jakarta Sans"', 'system-ui', 'sans-serif'] },
       boxShadow: { card: '0 1px 2px rgba(13,16,36,.05), 0 8px 24px rgba(40,50,120,.08)' },
     },

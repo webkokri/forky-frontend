@@ -94,7 +94,7 @@ export default function Assistant() {
   return (
     <>
       {!open && (
-        <button onClick={() => setOpen(true)} aria-label={`Open ${name}`} className={`fixed right-4 z-40 flex items-center gap-2 rounded-full bg-ink-900 py-2 pl-2 pr-4 text-white shadow-2xl shadow-ink-900/30 transition hover:-translate-y-0.5 ${cartBarShown ? 'bottom-24' : 'bottom-4'}`}>
+        <button onClick={() => setOpen(true)} aria-label={`Open ${name}`} className={`fixed right-4 z-40 flex items-center gap-2 rounded-full bg-ink-900 py-2 pl-2 pr-4 text-white shadow-2xl shadow-ink-900/30 transition hover:-translate-y-0.5 ${cartBarShown ? (pathname.startsWith('/restaurant') || pathname.startsWith('/store') ? 'bottom-24 lg:bottom-4' : 'bottom-24') : 'bottom-4'}`}>
           <span className="relative grid h-10 w-10 place-items-center overflow-hidden rounded-full bg-white">
             {cfg.logoUrl ? <img src={cfg.logoUrl} alt="" className="h-8 w-8 object-contain" /> : <span aria-hidden>🍴</span>}
             {unread && <span className="absolute right-0 top-0 h-3 w-3 rounded-full bg-brand-500 ring-2 ring-white" />}
