@@ -1,0 +1,11 @@
+{
+  "name": "Forky",
+  "short_name": "Forky",
+  "description": "Food and groceries delivered from local restaurants and stores.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#fffaf3",
+  "theme_color": "#ee5034",
+  "icons": [{ "src": "/logo.png", "sizes": "500x500", "type": "image/png", "purpose": "any" }]
+}

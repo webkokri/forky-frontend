@@ -185,6 +185,9 @@ export const real = {
   sendTicketMessage: (id, body) => http(`/customer/support/tickets/${id}/messages`, { method: 'POST', body: { body } }),
 
   // ---------- checkout & orders ----------
+  // Creates/updates the Stripe PaymentIntent for the current cart; the amount is priced on the server.
+  paymentIntent: (body) => http('/customer/payments/intent', { method: 'POST', body }),
+  topUpConfirm: (paymentIntentId) => http('/customer/wallet/top-up/confirm', { method: 'POST', body: { paymentIntentId } }),
   quote: (body) => http('/customer/checkout/quote', { method: 'POST', body }),
   placeOrder: (body) => http('/customer/orders', { method: 'POST', body }),
   listOrders: (params) => http('/customer/orders', { params: { limit: 50, ...params } }),

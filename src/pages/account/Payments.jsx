@@ -1,7 +1,8 @@
-import { useState } from 'react'
+import { useRef, useState } from 'react'
 import { api } from '../../api'
 import { useAsync, money } from '../../utils/useAsync'
 import { Card, Empty, PageHead } from '../../components/AccountLayout'
+import StripeElement from '../../components/StripeElement'
 import { when } from '../../utils/orders'
 
 export default function Payments() {
@@ -11,13 +12,30 @@ export default function Payments() {
   const [code, setCode] = useState('')
   const [amount, setAmount] = useState(25)
   const [msg, setMsg] = useState(null) // { ok, text }
+  const [flow, setFlow] = useState(null) // { kind: 'topup' | 'card', clientSecret, publishableKey, intentId, amount }
+  const [busy, setBusy] = useState(false)
+  const el = useRef(null)
 
   const run = async (fn, okText) => {
     setMsg(null)
     try { const r = await fn(); setMsg({ ok: true, text: typeof okText === 'function' ? okText(r) : okText }) } catch (e) { setMsg({ ok: false, text: e.message }) }
   }
-  const cardsReady = cfg && cfg.provider !== 'none'
-  const unavailable = 'Card payments aren’t available yet. Please check back soon.'
+  const cardsReady = cfg?.provider === 'stripe' && !!cfg?.publishableKey
+  const unavailable = 'Card payments aren’t available right now.'
+  const start = (kind, make) => async () => {
+    setMsg(null)
+    if (!cardsReady) return setMsg({ ok: false, text: unavailable })
+    try { const r = await make(); setFlow({ kind, publishableKey: r.publishableKey || cfg.publishableKey, clientSecret: r.clientSecret, intentId: r.intentId, amount: r.amount }) } catch (e) { setMsg({ ok: false, text: e.message }) }
+  }
+  const finish = async () => {
+    setBusy(true); setMsg(null)
+    try {
+      const r = await el.current.confirm(flow.kind === 'card' ? 'setup' : 'payment', `${window.location.origin}/account/payments`)
+      if (r.error) throw new Error(r.error.message || 'That didn’t go through.')
+      if (flow.kind === 'topup') { const c = await api.topUpConfirm(r.paymentIntent?.id || flow.intentId); setMsg({ ok: true, text: c.status === 'not_paid' ? 'We haven’t received the payment yet. Your balance will update shortly.' : `${money(c.amount ?? flow.amount)} added to your wallet.` }); reloadWallet() } else { setMsg({ ok: true, text: 'Card saved.' }); reloadCards() }
+      setFlow(null)
+    } catch (e) { setMsg({ ok: false, text: e.message }) } finally { setBusy(false) }
+  }
   const txs = wallet?.transactions?.data || []
   const methods = [['💳', 'Credit / debit card', cardsReady], ['', 'Apple Pay', cardsReady && cfg?.applePay !== false], ['', 'Google Pay', cardsReady && cfg?.googlePay !== false], ['👛', 'Forky wallet', cfg?.walletEnabled !== false]]
 
@@ -29,12 +47,19 @@ export default function Payments() {
       <Card className="bg-gradient-to-br from-brand-600 to-flame-700 !border-0 text-white">
         <div className="text-xs font-bold uppercase tracking-wider text-white/80">Wallet balance</div>
         <div className="mt-1 font-display text-5xl font-bold">{wallet ? money(wallet.balance) : '–'}</div>
-        <form onSubmit={(e) => { e.preventDefault(); run(async () => { const r = await api.topUpIntent(Number(amount)); if (!r?.clientSecret) throw new Error(unavailable); throw new Error(unavailable) }, '') }} className="mt-5 flex flex-wrap items-center gap-2">
+        <form onSubmit={(e) => { e.preventDefault(); start('topup', () => api.topUpIntent(Number(amount)))() }} className="mt-5 flex flex-wrap items-center gap-2">
           {[10, 25, 50, 100].map((a) => <button type="button" key={a} onClick={() => setAmount(a)} className={`rounded-full border px-4 py-1.5 text-sm font-bold ${Number(amount) === a ? 'border-white bg-white text-brand-600' : 'border-white/40'}`}>${a}</button>)}
           <button className="rounded-full bg-white px-5 py-1.5 text-sm font-bold text-brand-600">Add funds</button>
         </form>
       </Card>
 
+      {flow && (
+        <Card>
+          <div className="flex items-center justify-between"><h2 className="font-display text-xl font-bold">{flow.kind === 'card' ? 'Add a card' : `Add ${money(flow.amount ?? amount)} to your wallet`}</h2><button onClick={() => setFlow(null)} className="text-sm font-semibold text-ink-500 hover:text-ink-900">Cancel</button></div>
+          <div className="mt-4"><StripeElement ref={el} key={flow.clientSecret} publishableKey={flow.publishableKey} clientSecret={flow.clientSecret} /></div>
+          <button onClick={finish} disabled={busy} className="btn-primary mt-4 w-full py-3">{busy ? 'Processing…' : flow.kind === 'card' ? 'Save card' : `Pay ${money(flow.amount ?? amount)}`}</button>
+        </Card>
+      )}
       <div className="grid gap-6 lg:grid-cols-2">
         <Card>
           <h2 className="font-display text-xl font-bold">Saved cards</h2>
@@ -50,7 +75,7 @@ export default function Payments() {
             ))}
             {cards && !cards.data.length && <Empty icon="💳" title="No saved cards" />}
           </div>
-          <button onClick={() => run(async () => { const r = await api.cardSetupIntent(); if (!r?.clientSecret) throw new Error(unavailable); throw new Error(unavailable) }, '')} className="btn-ghost mt-4 w-full">+ Add a card</button>
+          <button onClick={start('card', () => api.cardSetupIntent())} className="btn-ghost mt-4 w-full">+ Add a card</button>
         </Card>
 
         <div className="space-y-6">

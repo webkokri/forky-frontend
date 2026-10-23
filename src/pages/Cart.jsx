@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { api } from '../api'
 import { useAuth } from '../context/AuthContext'
@@ -8,6 +8,7 @@ import { useMode } from '../context/ModeContext'
 import { useAsync, money } from '../utils/useAsync'
 import { AddButton, Thumb } from '../components/ui'
 import AddressSearch from '../components/AddressSearch'
+import StripeElement from '../components/StripeElement'
 
 const TIPS = [0, 10, 15, 20]
 const LINES = [['subtotal', 'Item total'], ['deliveryFee', 'Delivery fee'], ['serviceFee', 'Service fee'], ['smallOrderFee', 'Small order fee'], ['taxAmount', 'Taxes'], ['tax', 'Taxes'], ['tip', 'Tip'], ['discountTotal', 'Discount', true], ['discount', 'Discount', true]]
@@ -73,7 +74,11 @@ export default function Cart() {
   const [tipPct, setTipPct] = useState(0)
   const [promoInput, setPromoInput] = useState('')
   const [promo, setPromo] = useState('')
-  const [pay, setPay] = useState('WALLET')
+  const [pay, setPay] = useState('CARD') // card is the primary method
+  const [intent, setIntent] = useState(null)
+  const [saveCard, setSaveCard] = useState(false)
+  const card = useRef(null)
+  const paid = useRef(null) // intent id already charged, if placing the order failed afterwards
   const [note, setNote] = useState('')
   const [subst, setSubst] = useState('ALLOW')
   const [quote, setQuote] = useState(null)
@@ -107,6 +112,21 @@ export default function Cart() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready2quote, vendor?.id, cartKey, type, addressId, promo, tip, subst])
 
+  // Card payments: keep a Stripe PaymentIntent in step with the quote (the server prices it).
+  const cardReady = payCfg?.provider === 'stripe' && !!payCfg?.publishableKey
+  useEffect(() => {
+    if (pay !== 'CARD' || !cardReady || !quote || quoteErr || !ready2quote) return undefined
+    let alive = true
+    const t = setTimeout(async () => {
+      try {
+        const r = await api.paymentIntent({ type, ...(type === 'DELIVERY' ? { addressId } : {}), ...(promo ? { promoCode: promo } : {}), ...(tip && type === 'DELIVERY' ? { tip } : {}), ...(saveCard ? { saveCard: true } : {}), ...(intent?.intentId ? { intentId: intent.intentId } : {}) })
+        if (alive) setIntent(r)
+      } catch (e) { if (alive) { setIntent(null); setPlaceErr(e.message) } }
+    }, 300)
+    return () => { alive = false; clearTimeout(t) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pay, cardReady, quote?.total, ready2quote, type, addressId, promo, tip, saveCard])
+
   if (!cart.count) {
     return (
       <div className="container-x py-24 text-center">
@@ -121,19 +141,33 @@ export default function Cart() {
   async function placeOrder() {
     setPlacing(true); setPlaceErr('')
     try {
-      const order = await api.placeOrder({ type, ...(type === 'DELIVERY' ? { addressId } : {}), paymentMethod: pay, ...(promo ? { promoCode: promo } : {}), ...(tip && type === 'DELIVERY' ? { tip } : {}), ...(note ? { customerNotes: note } : {}) })
+      let intentId
+      if (pay === 'CARD') {
+        intentId = paid.current || intent?.intentId
+        if (!paid.current) {
+          // This is the moment the card is charged (3-D Secure is handled by Stripe).
+          const r = await card.current.confirm('payment')
+          if (r.error) { setPlaceErr(r.error.message || 'The payment didn’t go through.'); return }
+          if (!['succeeded', 'requires_capture'].includes(r.paymentIntent?.status)) { setPlaceErr('The payment isn’t complete yet. Please try again.'); return }
+          paid.current = intentId
+        }
+      }
+      const order = await api.placeOrder({ type, ...(type === 'DELIVERY' ? { addressId } : {}), paymentMethod: pay, ...(intentId ? { paymentIntentId: intentId } : {}), ...(promo ? { promoCode: promo } : {}), ...(tip && type === 'DELIVERY' ? { tip } : {}), ...(note ? { customerNotes: note } : {}) })
+      paid.current = null
       cart.clear()
       nav(`/order/${order.id}`, { state: { order } })
-    } catch (e) { setPlaceErr(e.message) } finally { setPlacing(false) }
+    } catch (e) {
+      if (e.code === 'PAYMENT_QUOTE_CHANGED') { paid.current = null; setIntent(null) }
+      setPlaceErr(paid.current ? `Your card was charged, but we couldn’t finish the order: ${e.message}. Tap the button to try again; you won’t be charged twice.` : e.message)
+    } finally { setPlacing(false) }
   }
 
   const total = quote?.total ?? quote?.grandTotal
   // Cash isn't accepted by the API; card needs a configured payment provider.
   const balance = wallet?.balance ?? 0
-  const cardReady = payCfg && payCfg.provider !== 'none'
   const walletOk = payCfg?.walletEnabled && balance >= (total ?? 0)
-  const methods = [['WALLET', `Forky wallet · ${money(balance)}`, payCfg?.walletEnabled !== false], ['CARD', 'Credit / debit card', cardReady]]
-  const payable = pay === 'WALLET' ? walletOk : cardReady
+  const methods = [['CARD', 'Credit / debit card · Apple Pay · Google Pay', cardReady], ['WALLET', `Forky wallet · ${money(balance)}`, payCfg?.walletEnabled !== false]]
+  const payable = pay === 'WALLET' ? walletOk : cardReady && !!intent?.clientSecret
 
   return (
     <div className="container-x grid gap-8 py-8 lg:grid-cols-[1fr_380px]">
@@ -164,7 +198,13 @@ export default function Cart() {
                   </label>
                 ))}
               </div>
-              {!cardReady && <p className="mt-2 text-xs text-ink-500">Card payments aren’t available yet.</p>}
+              {pay === 'CARD' && cardReady && (
+                <div className="mt-4">
+                  {intent?.clientSecret ? <StripeElement key={intent.clientSecret} ref={card} publishableKey={intent.publishableKey || payCfg.publishableKey} clientSecret={intent.clientSecret} /> : <div className="h-28 animate-pulse rounded-xl bg-ink-100" aria-label="Preparing secure payment" />}
+                  <label className="mt-3 flex items-center gap-2 text-sm text-ink-700"><input type="checkbox" checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} className="accent-brand-500" />Save this card for next time</label>
+                </div>
+              )}
+              {!cardReady && <p className="mt-2 text-xs text-ink-500">Card payments aren’t available right now.</p>}
               {pay === 'WALLET' && total != null && !walletOk && <p className="mt-1 text-xs text-rose-600">Your wallet balance doesn’t cover this order.</p>}
             </section>
             {vendor.type === 'store' && (
@@ -234,7 +274,7 @@ export default function Cart() {
           {quoting && <p className="mt-2 text-xs text-ink-500">Updating prices…</p>}
           {quoteErr && <p className="mt-2 text-xs text-rose-600">{quoteErr}</p>}
           {placeErr && <p className="mt-2 text-xs text-rose-600">{placeErr}</p>}
-          <button onClick={placeOrder} disabled={placing || !user || !quote || quoting || !payable} className="btn-primary mt-4 w-full py-3.5 text-base">{placing ? 'Placing order…' : total != null ? `Place order · ${money(total)}` : 'Place order'}</button>
+          <button onClick={placeOrder} disabled={placing || !user || !quote || quoting || !payable} className="btn-primary mt-4 w-full py-3.5 text-base">{placing ? (pay === 'CARD' ? 'Processing payment…' : 'Placing order…') : total != null ? `${pay === 'CARD' ? 'Pay' : 'Place order'} · ${money(total)}` : 'Place order'}</button>
         </div>
       </aside>
     </div>

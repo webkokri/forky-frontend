@@ -33,7 +33,8 @@ function applyHead(h) {
   if (h.htmlLang) document.documentElement.lang = h.htmlLang
   const add = (tag, attrs) => { const el = document.createElement(tag); setAttrs(el, attrs); el.setAttribute(HEAD_ATTR, ''); document.head.appendChild(el) }
   ;(h.meta || []).forEach((m) => add('meta', m))
-  ;(h.link || []).forEach((l) => add('link', l))
+  // The manifest is our own (/manifest.webmanifest): the API's one points at another origin, which browsers ignore.
+  ;(h.link || []).filter((l) => l.rel !== 'manifest').forEach((l) => add('link', l))
   if (h.themeColor && !(h.meta || []).some((m) => m.name === 'theme-color')) add('meta', { name: 'theme-color', content: h.themeColor })
   if (h.canonical && !(h.link || []).some((l) => l.rel === 'canonical')) add('link', { rel: 'canonical', href: h.canonical })
   ;(h.jsonLd || []).forEach((obj) => {
@@ -59,7 +60,6 @@ function fallbackHead(site, path) {
   const link = []
   if (b.favicon) link.push({ rel: 'icon', href: b.favicon })
   if (b.appleTouchIcon) link.push({ rel: 'apple-touch-icon', href: b.appleTouchIcon })
-  if (site?.files?.manifest) link.push({ rel: 'manifest', href: viaApi(site.files.manifest) })
   return { title: seo?.title, htmlLang: site?.site?.language, themeColor: site?.site?.themeColor, meta, link, jsonLd: [], canonical: `${window.location.origin}${path}` }
 }
 
