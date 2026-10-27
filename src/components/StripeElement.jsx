@@ -6,6 +6,13 @@ import { loadStripe } from '@stripe/stripe-js'
 const cache = {}
 const getStripe = (pk) => (cache[pk] ??= loadStripe(pk))
 
+/** Pay a PaymentIntent with a card the customer saved earlier (no card details are typed; Stripe handles 3-D Secure) -> { error?, paymentIntent? } */
+export async function confirmSavedCard(publishableKey, clientSecret, paymentMethodId) {
+  const stripe = await getStripe(publishableKey)
+  if (!stripe) return { error: { message: 'The payment form couldn’t be loaded. Check your connection and try again.' } }
+  return stripe.confirmCardPayment(clientSecret, { payment_method: paymentMethodId })
+}
+
 export default forwardRef(function StripeElement({ publishableKey, clientSecret }, ref) {
   const host = useRef(null)
   const state = useRef({})

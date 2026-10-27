@@ -19,6 +19,7 @@ export default function OrderPage() {
   const cart = useCart()
   const nav = useNavigate()
   const [busy, setBusy] = useState(false)
+  const [askRefund, setAskRefund] = useState(false)
   const [err, setErr] = useState('')
   const [rate, setRate] = useState({ restaurantRating: 0, driverRating: 0, comment: '' })
   const [rated, setRated] = useState(false)
@@ -52,7 +53,17 @@ export default function OrderPage() {
         {t.total != null && <div className="flex justify-between border-t border-ink-100 pt-3 text-base font-extrabold"><span>Total</span><span>{money(t.total)}</span></div>}
       </div>
       <div className="mt-6 flex flex-wrap justify-center gap-3">
-        {t.canCancel && !cancelled && <button disabled={busy} onClick={async () => { if (!window.confirm('Cancel this order?')) return; setBusy(true); setErr(''); try { await api.cancelOrder(id, 'Cancelled by customer'); reload() } catch (e) { setErr(e.message) } finally { setBusy(false) } }} className="rounded-xl border border-rose-200 px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50">Cancel order</button>}
+        {t.canCancel && !cancelled && (askRefund ? (
+          <div className="rounded-xl border border-rose-200 p-3 text-sm" data-testid="cancel-choice">
+            <p className="font-semibold">Where should your refund go?</p>
+            <div className="mt-2 flex flex-wrap gap-2">
+              {[['ORIGINAL_PAYMENT', 'Refund to my card'], ['WALLET', 'Refund to my wallet']].map(([to, label]) => (
+                <button key={to} disabled={busy} onClick={async () => { setBusy(true); setErr(''); try { await api.cancelOrder(id, 'Cancelled by customer', to); setAskRefund(false); reload() } catch (e) { setErr(e.message) } finally { setBusy(false) } }} className="rounded-xl border border-rose-200 px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50">{label}</button>
+              ))}
+              <button onClick={() => setAskRefund(false)} className="rounded-xl px-4 py-2.5 text-sm font-semibold text-ink-500">Keep order</button>
+            </div>
+          </div>
+        ) : <button disabled={busy} onClick={() => setAskRefund(true)} className="rounded-xl border border-rose-200 px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50">Cancel order</button>)}
         {(t.status === 'DELIVERED' || t.status === 'COMPLETED' || cancelled) && <button disabled={busy} onClick={async () => { setBusy(true); setErr(''); try { await api.reorder(id); await cart.restore(); nav('/cart') } catch (e) { setErr(e.message) } finally { setBusy(false) } }} className="btn-primary">Order again</button>}
       </div>
       {err && <p className="mt-3 text-center text-sm text-rose-600">{err}</p>}

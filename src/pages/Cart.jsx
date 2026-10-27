@@ -8,7 +8,7 @@ import { useMode } from '../context/ModeContext'
 import { useAsync, money } from '../utils/useAsync'
 import { AddButton, Thumb } from '../components/ui'
 import AddressSearch from '../components/AddressSearch'
-import StripeElement from '../components/StripeElement'
+import StripeElement, { confirmSavedCard } from '../components/StripeElement'
 
 const TIPS = [0, 10, 15, 20]
 const LINES = [['subtotal', 'Item total'], ['deliveryFee', 'Delivery fee'], ['serviceFee', 'Service fee'], ['smallOrderFee', 'Small order fee'], ['taxAmount', 'Taxes'], ['tax', 'Taxes'], ['tip', 'Tip'], ['discountTotal', 'Discount', true], ['discount', 'Discount', true]]
@@ -77,6 +77,11 @@ export default function Cart() {
   const [pay, setPay] = useState('CARD') // card is the primary method
   const [intent, setIntent] = useState(null)
   const [saveCard, setSaveCard] = useState(false)
+  // cards saved earlier: one tap to pay with one, or 'new' to type another card
+  const [cards, setCards] = useState([])
+  const [cardChoice, setCardChoice] = useState('new')
+  const choiceTouched = useRef(false)
+  const lastChoice = useRef('new')
   const card = useRef(null)
   const paid = useRef(null) // intent id already charged, if placing the order failed afterwards
   const [note, setNote] = useState('')
@@ -112,6 +117,19 @@ export default function Cart() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [ready2quote, vendor?.id, cartKey, type, addressId, promo, tip, subst])
 
+  // The customer's saved cards (default one pre-selected, unless they already picked something).
+  useEffect(() => {
+    if (!user) return undefined
+    let alive = true
+    api.listCards().then((r) => {
+      if (!alive) return
+      const list = r?.data || []
+      setCards(list)
+      if (list.length && !choiceTouched.current) setCardChoice((list.find((c) => c.isDefault) || list[0]).id)
+    }).catch(() => undefined)
+    return () => { alive = false }
+  }, [user?.id])
+
   // Card payments: keep a Stripe PaymentIntent in step with the quote (the server prices it).
   const cardReady = payCfg?.provider === 'stripe' && !!payCfg?.publishableKey
   useEffect(() => {
@@ -119,13 +137,14 @@ export default function Cart() {
     let alive = true
     const t = setTimeout(async () => {
       try {
-        const r = await api.paymentIntent({ type, ...(type === 'DELIVERY' ? { addressId } : {}), ...(promo ? { promoCode: promo } : {}), ...(tip && type === 'DELIVERY' ? { tip } : {}), ...(saveCard ? { saveCard: true } : {}), ...(intent?.intentId ? { intentId: intent.intentId } : {}) })
+        const r = await api.paymentIntent({ type, ...(type === 'DELIVERY' ? { addressId } : {}), ...(promo ? { promoCode: promo } : {}), ...(tip && type === 'DELIVERY' ? { tip } : {}), ...(cardChoice === 'new' && saveCard ? { saveCard: true } : {}), ...(cardChoice !== 'new' ? { paymentMethodId: cardChoice } : {}), ...(intent?.intentId && lastChoice.current === cardChoice ? { intentId: intent.intentId } : {}) })
+        lastChoice.current = cardChoice
         if (alive) setIntent(r)
       } catch (e) { if (alive) { setIntent(null); setPlaceErr(e.message) } }
     }, 300)
     return () => { alive = false; clearTimeout(t) }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pay, cardReady, quote?.total, ready2quote, type, addressId, promo, tip, saveCard])
+  }, [pay, cardReady, quote?.total, ready2quote, type, addressId, promo, tip, saveCard, cardChoice])
 
   if (!cart.count) {
     return (
@@ -146,7 +165,9 @@ export default function Cart() {
         intentId = paid.current || intent?.intentId
         if (!paid.current) {
           // This is the moment the card is charged (3-D Secure is handled by Stripe).
-          const r = await card.current.confirm('payment')
+          const r = cardChoice !== 'new'
+            ? await confirmSavedCard(intent.publishableKey || payCfg.publishableKey, intent.clientSecret, cardChoice)
+            : await card.current.confirm('payment')
           if (r.error) { setPlaceErr(r.error.message || 'The payment didn’t go through.'); return }
           if (!['succeeded', 'requires_capture'].includes(r.paymentIntent?.status)) { setPlaceErr('The payment isn’t complete yet. Please try again.'); return }
           paid.current = intentId
@@ -200,8 +221,27 @@ export default function Cart() {
               </div>
               {pay === 'CARD' && cardReady && (
                 <div className="mt-4">
-                  {intent?.clientSecret ? <StripeElement key={intent.clientSecret} ref={card} publishableKey={intent.publishableKey || payCfg.publishableKey} clientSecret={intent.clientSecret} /> : <div className="h-28 animate-pulse rounded-xl bg-ink-100" aria-label="Preparing secure payment" />}
-                  <label className="mt-3 flex items-center gap-2 text-sm text-ink-700"><input type="checkbox" checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} className="accent-brand-500" />Save this card for next time</label>
+                  {cards.length > 0 && (
+                    <div className="mb-3 space-y-2" role="radiogroup" aria-label="Saved cards" data-testid="saved-cards">
+                      {cards.map((c) => (
+                        <label key={c.id} className={`flex cursor-pointer items-center gap-2 rounded-xl border p-3 text-sm ${cardChoice === c.id ? 'border-brand-500 bg-brand-50' : 'border-ink-100'}`}>
+                          <input type="radio" name="savedcard" checked={cardChoice === c.id} onChange={() => { choiceTouched.current = true; setCardChoice(c.id) }} className="accent-brand-500" />
+                          <span><b className="uppercase">{c.brand}</b> •••• {c.last4}<span className="text-xs text-ink-500"> · expires {String(c.expMonth).padStart(2, '0')}/{c.expYear}{c.isDefault ? ' · default' : ''}</span></span>
+                        </label>
+                      ))}
+                      <label className={`flex cursor-pointer items-center gap-2 rounded-xl border p-3 text-sm ${cardChoice === 'new' ? 'border-brand-500 bg-brand-50' : 'border-ink-100'}`}>
+                        <input type="radio" name="savedcard" checked={cardChoice === 'new'} onChange={() => { choiceTouched.current = true; setCardChoice('new') }} className="accent-brand-500" /> Use a different card
+                      </label>
+                    </div>
+                  )}
+                  {cardChoice === 'new' ? (
+                    <>
+                      {intent?.clientSecret ? <StripeElement key={intent.clientSecret} ref={card} publishableKey={intent.publishableKey || payCfg.publishableKey} clientSecret={intent.clientSecret} /> : <div className="h-28 animate-pulse rounded-xl bg-ink-100" aria-label="Loading card form" />}
+                      <label className="mt-3 flex items-center gap-2 text-sm text-ink-700"><input type="checkbox" checked={saveCard} onChange={(e) => setSaveCard(e.target.checked)} className="accent-brand-500" />Save this card for next time</label>
+                    </>
+                  ) : (
+                    <p className="text-xs text-ink-500">You’ll be charged on this card when you place the order. Saved cards can be removed in Account → Payments.</p>
+                  )}
                 </div>
               )}
               {!cardReady && <p className="mt-2 text-xs text-ink-500">Card payments aren’t available right now.</p>}
